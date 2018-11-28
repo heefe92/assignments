@@ -15,11 +15,10 @@ int main() {
 	int beta = 50;
 	IPCVL::EXAMPLE::ChangeContrastAndBrightness(inputImage, outputImage, alpha, beta);
 
-	int inputHistogram[256] = { 0, };
+	int inputHistogram[256] = { 0, }; // 모두 0으로 초기화
 	int outputHhistogram[256] = { 0, };
 
-	// Todo : imageproc.cpp에 있는 calcHist 함수를 작성하세요
-	IPCVL::IMG_PROC::calcHist(inputImage, inputHistogram); 
+	IPCVL::IMG_PROC::calcHist(inputImage, inputHistogram); //histogram에 *로 접근
 	IPCVL::IMG_PROC::calcHist(outputImage, outputHhistogram);
 
 	cv::Mat inputHistImage;
