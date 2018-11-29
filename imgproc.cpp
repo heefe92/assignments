@@ -21,6 +21,11 @@ namespace IPCVL {
 			cv::Mat outputProb = dst.getMat();
 			outputProb.setTo(cv::Scalar(0.)); // 배열의 전체를 0으로 변경
 
+			std::vector<cv::Mat> channels;
+			split(src_hsv, channels);
+			cv::Mat mat_h = channels[0];
+			cv::Mat mat_s = channels[1];
+
 			double model_hist[64][64] = { { 0., } };
 			double input_hist[64][64] = { { 0., } };
 
@@ -28,20 +33,16 @@ namespace IPCVL {
 			calcHist_hs(srcMat, input_hist);
 			calcHist_hs(faceMat, model_hist);
 
-			std::vector<cv::Mat> channels;
-			split(src_hsv, channels);
-			cv::Mat mat_h = channels[0];
-			cv::Mat mat_s = channels[1];
 
 			for (int y = 0; y < srcMat.rows; y++) {
 				for (int x = 0; x < srcMat.cols; x++) {
 					// Todo : 양자화된 h,s 값을 얻고 histogram에 값을 더합니다. 
 					
-					std::cout << UTIL::h_r(model_hist, input_hist,
-						UTIL::quantize(mat_h.at<uchar>(y, x)), UTIL::quantize(mat_s.at<uchar>(y, x))) << std::endl;
 					/** your code here! **/
-					outputProb.at<double>(y, x) = UTIL::h_r(model_hist, input_hist,
-						UTIL::quantize(mat_h.at<uchar>(y, x)), UTIL::quantize(mat_s.at<uchar>(y, x)));
+					int h = UTIL::quantize(mat_h.at<uchar>(y, x));
+					int s = UTIL::quantize(mat_s.at<uchar>(y, x));
+
+					outputProb.at<double>(y, x) = UTIL::h_r(model_hist, input_hist, h, s);
 				}
 			}
 		}
