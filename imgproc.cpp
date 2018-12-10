@@ -60,6 +60,41 @@ namespace IPCVL {
 			}
 		}
 
+		void thresh_otsu(cv::InputArray src, cv::OutputArray dst)
+		{
+			cv::Mat inputMat = src.getMat();
+
+			int inputHistogram[256] = { 0, };
+			IPCVL::IMG_PROC::calcHist(inputMat, inputHistogram);
+
+			double max_v_between = 0;
+			int max_index_v_between = 0;
+			for (int t = 1; t < 256; t++) {
+				int a = 0;
+				int b = 0;
+				double mean_0 = 0;
+				double mean_1 = 0;
+				for (int i = 0; i < t; i++) {
+					a += inputHistogram[i];
+					mean_0 += inputHistogram[i] * i;
+				}
+				
+				for (int j = t; j < 256; j++) {
+					b += inputHistogram[j];
+					mean_1 += inputHistogram[j] * j;
+				}
+				mean_0 /= a;
+				mean_1 /= b;
+				double w_0 = (double)a / (a + b);
+				double v_between = w_0*(1 - w_0)*((mean_0 - mean_1)*(mean_0 - mean_1));
+				if (max_v_between < v_between) {
+					max_v_between = v_between;
+					max_index_v_between = t;
+				}
+			}
+			thresh_binary(src,dst, max_index_v_between);
+		}
+
 		void calcHist_hs(cv::InputArray src_hsv, double histogram[][64]) {
 			cv::Mat hsv = src_hsv.getMat();
 			std::vector<cv::Mat> channels;
