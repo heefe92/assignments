@@ -43,6 +43,23 @@ namespace IPCVL {
 			}
 		}
 
+		void thresh_binary(cv::InputArray src, cv::OutputArray dst, const int & threshold)
+		{
+			cv::Mat inputMat = src.getMat();
+			dst.create(inputMat.size(), CV_8UC1);
+			cv::Mat outputMat = dst.getMat();
+
+			for (int i = 0; i < inputMat.rows; i++) {
+				for (int j = 0; j < inputMat.cols; j++) {
+					if (inputMat.at<uchar>(i, j) <= threshold)
+						outputMat.at<uchar>(i, j) = 0;
+					else
+						outputMat.at<uchar>(i, j) = 255;
+
+				}
+			}
+		}
+
 		void calcHist_hs(cv::InputArray src_hsv, double histogram[][64]) {
 			cv::Mat hsv = src_hsv.getMat();
 			std::vector<cv::Mat> channels;
