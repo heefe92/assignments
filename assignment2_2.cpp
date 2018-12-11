@@ -8,6 +8,7 @@
 #include "imgproc.h" //-->> It should be Changed 
 #include "utils.h"
 #include "examples.h"
+                          
 
 int main() {
 	cv::Mat src_small = cv::imread("./samples/sample2_2_1.bmp", cv::IMREAD_GRAYSCALE);
@@ -33,7 +34,7 @@ int main() {
 
 	cv::minMaxLoc(result_naive_8, &min, &max);
 	result_naive_8.convertTo(result_naive_8, CV_32FC1, 1 / max);
-
+	
 	cv::minMaxLoc(result_efficient_4, &min, &max);
 	result_efficient_4.convertTo(result_efficient_4, CV_32FC1, 1 / max);
 

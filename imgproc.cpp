@@ -95,6 +95,120 @@ namespace IPCVL {
 			thresh_binary(src,dst, max_index_v_between);
 		}
 
+		void flood_fill4(cv::Mat & l, const int & j, const int & i, const int & label)
+		{
+			if (l.at<int>(j, i) == -1) {
+				l.at<int>(j, i) = label;
+				IPCVL::IMG_PROC::flood_fill4(l, j, i + 1, label);
+				IPCVL::IMG_PROC::flood_fill4(l, j - 1, i, label);
+				IPCVL::IMG_PROC::flood_fill4(l, j, i - 1, label);
+				IPCVL::IMG_PROC::flood_fill4(l, j + 1, i, label);
+			}
+		}
+
+		void flood_fill8(cv::Mat & l, const int & j, const int & i, const int & label)
+		{
+			if (l.at<int>(j, i) == -1) {
+				l.at<int>(j, i) = label;
+				IPCVL::IMG_PROC::flood_fill8(l, j, i + 1, label);
+				IPCVL::IMG_PROC::flood_fill8(l, j+1, i + 1, label);
+				IPCVL::IMG_PROC::flood_fill8(l, j + 1, i, label);
+				IPCVL::IMG_PROC::flood_fill8(l, j + 1, i - 1, label);
+				IPCVL::IMG_PROC::flood_fill8(l, j, i - 1, label);
+				IPCVL::IMG_PROC::flood_fill8(l, j - 1, i-1, label);
+				IPCVL::IMG_PROC::flood_fill8(l, j - 1, i, label);
+				IPCVL::IMG_PROC::flood_fill8(l, j - 1, i+1, label);
+			}
+		}
+
+		void efficient_flood_fill4(cv::Mat & l, const int & j, const int & i, const int & label)
+		{
+			std::queue<int> j_que;
+			std::queue<int> i_que;
+			j_que.push(j);
+			i_que.push(i);
+			while (!j_que.empty()) {
+				int y = j_que.front();
+				int x = i_que.front();
+				j_que.pop();
+				i_que.pop();
+				if (l.at<int>(y, x) == -1) {
+					int left = x;
+					int right = x;
+					while (l.at<int>(y, left - 1) == -1) left--;
+					while (l.at<int>(y, right + 1) == -1) right++;
+					for (int c = left; c < right + 1; c++) {
+						l.at<int>(y, c) = label;
+						if (l.at<int>(y - 1, c) == -1 && (c == left || l.at<int>(y - 1, c - 1) != -1)) {
+							j_que.push(y - 1);
+							i_que.push(c);
+						}
+						if (l.at<int>(y + 1, c) == -1 && (c == left || l.at<int>(y + 1, c - 1) != -1)) {
+							j_que.push(y + 1);
+							i_que.push(c);
+						}
+					}
+				}
+			}
+
+		}
+
+		void flood_fill(cv::InputArray src, cv::OutputArray dst, const UTIL::CONNECTIVITIES & direction)
+		{
+			cv::Mat inputMat = src.getMat();
+			dst.create(inputMat.size(), CV_32SC1);
+			cv::Mat outputMat = dst.getMat();
+
+
+			for (int j = 0; j < inputMat.rows; j++) {
+				for (int i = 0; i < inputMat.cols; i++) {
+					if (j == 0 || i == 0 || j == inputMat.rows - 1 || i == inputMat.cols - 1) 
+						outputMat.at<int>(j, i) = 0;
+					else if (inputMat.at<uchar>(j, i) == 255)
+						outputMat.at<int>(j, i) = -1;
+					else
+						outputMat.at<int>(j, i) = 0;
+				}
+			}
+
+			if (direction == IPCVL::UTIL::CONNECTIVITIES::NAIVE_FOURWAY) {
+				int label = 1;
+				for (int j = 1; j < outputMat.rows - 1; j++) {
+					for (int i = 1; i < outputMat.cols - 1; i++) {
+						if (outputMat.at<int>(j, i) == -1) {
+							IPCVL::IMG_PROC::flood_fill4(outputMat, j, i, label);
+							label++;
+						}
+					}
+				}
+			}
+			else if (direction == IPCVL::UTIL::CONNECTIVITIES::NAIVE_EIGHT_WAY) {
+				int label = 1;
+				for (int j = 1; j < outputMat.rows - 1; j++) {
+					for (int i = 1; i < outputMat.cols - 1; i++) {
+						if (outputMat.at<int>(j, i) == -1) {
+							IPCVL::IMG_PROC::flood_fill8(outputMat, j, i, label);
+							label++;
+						}
+					}
+				}
+			}
+			else if (direction == IPCVL::UTIL::CONNECTIVITIES::EFFICIENT_FOURWAY) {
+				int label = 1;
+				for (int j = 1; j < outputMat.rows - 1; j++) {
+					for (int i = 1; i < outputMat.cols - 1; i++) {
+						if (outputMat.at<int>(j, i) == -1) {
+							IPCVL::IMG_PROC::efficient_flood_fill4(outputMat, j, i, label);
+							label++;
+						}
+					}
+				}
+			}
+			else {
+
+			}
+		}
+
 		void calcHist_hs(cv::InputArray src_hsv, double histogram[][64]) {
 			cv::Mat hsv = src_hsv.getMat();
 			std::vector<cv::Mat> channels;
